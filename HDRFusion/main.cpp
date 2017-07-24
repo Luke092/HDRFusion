@@ -29,7 +29,6 @@ using namespace cv;
 Mat toBN(Mat img);
 vector<string> listFile(const char* dirPath);
 bool has_suffix(const string& s, const string& suffix);
-vector<Mat> getGradient(Mat img);
 
 int main(int argc, char** argv) {
 	vector<string> list = listFile(".");
