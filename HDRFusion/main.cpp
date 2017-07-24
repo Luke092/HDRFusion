@@ -22,7 +22,7 @@ using namespace cv;
 Mat toBN(Mat img);
 
 int main(int argc, char** argv) {
-    Mat m = imread("/home/luca/Pictures/lena.jpg", CV_LOAD_IMAGE_COLOR);
+    Mat m = imread("lena.png", CV_LOAD_IMAGE_COLOR);
     namedWindow("Test", WINDOW_AUTOSIZE);
     imshow("Test", toBN(m));
     waitKey(0);
