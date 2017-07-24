@@ -16,6 +16,9 @@
 #include<fstream>
 #include<dirent.h>
 
+#include "Filter.h"
+#include "Gradient.h"
+
 using namespace std;
 using namespace cv;
 
@@ -26,15 +29,31 @@ using namespace cv;
 Mat toBN(Mat img);
 vector<string> listFile(const char* dirPath);
 bool has_suffix(const string& s, const string& suffix);
+vector<Mat> getGradient(Mat img);
 
 int main(int argc, char** argv) {
 	vector<string> list = listFile(".");
+	vector<Mat> stack;
+	vector<Gradient> I;
 	for(int i = 0; i < list.size(); i++)
 	{
 		    Mat m = imread(list[i], CV_LOAD_IMAGE_COLOR);
 		    namedWindow(list[i], WINDOW_AUTOSIZE);
-		    imshow(list[i], toBN(m));
+
+		    Mat img = toBN(m);
+		    stack.push_back(img);
+		    I.push_back(Gradient(img));
+
+		    imshow(list[i], img);
 		    waitKey(0);
+	}
+
+	for(int i = 0; i < I.size(); i++){
+		namedWindow("Ix", WINDOW_AUTOSIZE);
+		namedWindow("Iy", WINDOW_AUTOSIZE);
+		imshow("Ix", I[i].get_Ix());
+		imshow("Iy", I[i].get_Iy());
+		waitKey(0);
 	}
 
     return 0;
@@ -50,7 +69,6 @@ Mat toBN(Mat img){
                 new_pixel += (int)pixel.val[k];
             }
             new_pixel = (((double)1/3) * new_pixel)/255;
-            cout << new_pixel << endl;
             res.at<float>(i,j) = (float) new_pixel;
         }   
     }
