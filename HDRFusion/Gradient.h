@@ -1,27 +1,32 @@
 /*
  * Gradient.h
  *
- *  Created on: Jul 24, 2017
- *      Author: luca
+ *  Created on: 25 lug 2017
+ *      Author: gianmaria
  */
 
 #ifndef HDRFUSION_HDRFUSION_GRADIENT_H_
 #define HDRFUSION_HDRFUSION_GRADIENT_H_
 
+#include <math.h>
 #include <core.hpp>
 
 #include "Filter.h"
+#include "ImageTensor.h"
 
-using namespace cv;
 
-class Gradient {
+class Gradient
+{
 private:
-	Mat Ix;
-	Mat Iy;
+	Mat Gx;
+	Mat Gy;
+	int l,N;
+	Mat Avg;
+	void updateAvg();
 public:
-	Gradient(Mat img);
-	Mat get_Ix();
-	Mat get_Iy();
+	Gradient(ImageTensor G);
+	virtual ~Gradient();
+	Mat updateGradient();
 };
 
 #endif /* HDRFUSION_HDRFUSION_GRADIENT_H_ */

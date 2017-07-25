@@ -17,6 +17,8 @@
 #include<dirent.h>
 
 #include "Filter.h"
+#include "Derivate.h"
+#include "ImageTensor.h"
 #include "Gradient.h"
 
 using namespace std;
@@ -33,27 +35,37 @@ bool has_suffix(const string& s, const string& suffix);
 int main(int argc, char** argv) {
 	vector<string> list = listFile(".");
 	vector<Mat> stack;
-	vector<Gradient> I;
-	for(int i = 0; i < list.size(); i++)
+	vector<Derivate> I;
+	for(unsigned int i = 0; i < list.size(); i++)
 	{
 		    Mat m = imread(list[i], CV_LOAD_IMAGE_COLOR);
 		    namedWindow(list[i], WINDOW_AUTOSIZE);
 
 		    Mat img = toBN(m);
 		    stack.push_back(img);
-		    I.push_back(Gradient(img));
+		    I.push_back(Derivate(img));
 
 		    imshow(list[i], img);
 		    waitKey(0);
 	}
-
-	for(int i = 0; i < I.size(); i++){
-		namedWindow("Ix", WINDOW_AUTOSIZE);
-		namedWindow("Iy", WINDOW_AUTOSIZE);
-		imshow("Ix", I[i].get_Ix());
-		imshow("Iy", I[i].get_Iy());
-		waitKey(0);
-	}
+	cout << "Before Image Tensor" << endl;
+	ImageTensor G(I);
+	cout << "After Image Tensor" << endl;
+	cout << "Before Gradient" << endl;
+	Gradient G2(G);
+	cout << "After Gradient" << endl;
+	namedWindow("aa", WINDOW_AUTOSIZE);
+	Mat img2 = G2.updateGradient();
+	cout << img2.rows << " " << img2.rows << endl;
+	imshow("aa", img2);
+	waitKey(0);
+//	for(unsigned int i = 0; i < I.size(); i++){
+//		namedWindow("Ix", WINDOW_AUTOSIZE);
+//		namedWindow("Iy", WINDOW_AUTOSIZE);
+//		imshow("Ix", I[i].get_Ix());
+//		imshow("Iy", I[i].get_Iy());
+//		waitKey(0);
+//	}
 
     return 0;
 }
