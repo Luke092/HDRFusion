@@ -30,8 +30,16 @@ Tensor::Tensor(vector<Derivate> I, int x, int y)
 		g[1][1]+= I[i].get_Iy().at<float>(y,x) * I[i].get_Iy().at<float>(y,x);
 	}
 
+//	cout << "g11: " << getg11() <<
+//			" g12: " << getg12() <<
+//			" g21: " << getg21() <<
+//			" g22: " << getg22() << endl;
+
 	calcS();
 	calcE();
+
+//	cout << "S: " << S <<
+//			" E:" << E << endl;
 }
 
 Tensor::~Tensor()
@@ -73,7 +81,10 @@ float Tensor::getVx()
 {
 	float Vx = 0;
 	float fourg12 = 4 * pow(getg12(),2);
-	Vx = sgn<float>(Ix) * sqrtf(E * fourg12 / (fourg12 + pow(getg22() - getg11() + S, 2)));
+	if(fourg12 == 0)
+		Vx = 0;
+	else
+		Vx = sgn<float>(Ix) * sqrt(E * fourg12 / (fourg12 + pow(getg22() - getg11() + S, 2)));
 	return Vx;
 }
 
@@ -81,7 +92,10 @@ float Tensor::getVy()
 {
 	float Vy = 0;
 	float g22g11S = pow(getg22() - getg11() + S,2);
-	Vy = sgn<float>(Iy) * sqrtf(E * g22g11S / (4 * pow(getg12(),2) + g22g11S));
+	if(g22g11S == 0)
+		Vy = 0;
+	else
+		Vy = sgn<float>(Iy) * sqrtf(E * g22g11S / (4 * pow(getg12(),2) + g22g11S));
 	return Vy;
 }
 

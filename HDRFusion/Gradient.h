@@ -10,10 +10,15 @@
 
 #include <math.h>
 #include <core.hpp>
+#include <imgproc.hpp>
+#include <highgui.hpp>
+#include <iostream>
 
 #include "Filter.h"
 #include "ImageTensor.h"
 
+using namespace std;
+using namespace cv;
 
 class Gradient
 {
@@ -23,10 +28,11 @@ private:
 	int l,N;
 	Mat Avg;
 	void updateAvg();
+	void updateGradient();
 public:
 	Gradient(ImageTensor G);
 	virtual ~Gradient();
-	Mat updateGradient();
+	void update();
 };
 
 #endif /* HDRFUSION_HDRFUSION_GRADIENT_H_ */

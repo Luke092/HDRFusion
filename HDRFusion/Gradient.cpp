@@ -44,11 +44,53 @@ void Gradient::updateAvg()
 	}
 }
 
-Mat Gradient::updateGradient()
+void Gradient::updateGradient()
 {
-	Filter f(Avg);
-	Mat V2x = f.apply(f.apply(Gx));
-	return V2x;
+	Filter fx(Avg);
+	Mat V2x = fx.apply(fx.apply(Gx));
+
+	Mat AvgT;
+	transpose(Avg, AvgT);
+	Filter fy(AvgT);
+	Mat V2y = fy.apply(fy.apply(Gy));
+
+	for(int y = 0; y < Gy.rows; y++){
+		for(int x = 0; x < Gx.cols; x++){
+			float valX = V2x.at<float>(y,x) * (N + 1);
+			V2x.at<float>(y,x) = valX;
+			float valY = V2y.at<float>(y,x) * (N + 1);
+			V2y.at<float>(y,x) = valY;
+		}
+	}
+
+	for(int y = 0; y < Gy.rows; y++)
+	{
+		for(int x = 0; x < Gx.cols; x++)
+		{
+			float _v2x = (float) V2x.at<float>(y,x);
+			float _v2y = (float) V2y.at<float>(y,x);
+			Gx.at<float>(y,x) = _v2x * expf(-abs(_v2x) / (1 + abs(_v2x)));
+			Gy.at<float>(y,x) = _v2y * expf(-abs(_v2y) / (1 + abs(_v2y)));
+		}
+	}
+}
+
+void Gradient::update(){
+	do{
+		l++;
+		N = pow(2,l) + 1;
+		this->updateGradient();
+		/*Mat GxNorm, GyNorm;
+		GxNorm = Mat(Gx.rows, Gx.cols, CV_32FC1);
+		GyNorm = Mat(Gy.rows, Gy.cols, CV_32FC1);
+		normalize(Gx, GxNorm, 1, 0, NORM_MINMAX);
+		normalize(Gy, GyNorm, 1, 0, NORM_MINMAX);
+		namedWindow("Gx", WINDOW_AUTOSIZE);
+		namedWindow("Gy", WINDOW_AUTOSIZE);
+		imshow("Gx", GxNorm);
+		imshow("Gy", GyNorm);
+		waitKey(0);*/
+	} while(N < Gx.cols || N < Gy.rows);
 
 }
 

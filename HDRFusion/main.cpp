@@ -48,24 +48,12 @@ int main(int argc, char** argv) {
 		    imshow(list[i], img);
 		    waitKey(0);
 	}
-	cout << "Before Image Tensor" << endl;
+
 	ImageTensor G(I);
-	cout << "After Image Tensor" << endl;
-	cout << "Before Gradient" << endl;
+
 	Gradient G2(G);
-	cout << "After Gradient" << endl;
-	namedWindow("aa", WINDOW_AUTOSIZE);
-	Mat img2 = G2.updateGradient();
-	cout << img2.rows << " " << img2.rows << endl;
-	imshow("aa", img2);
-	waitKey(0);
-//	for(unsigned int i = 0; i < I.size(); i++){
-//		namedWindow("Ix", WINDOW_AUTOSIZE);
-//		namedWindow("Iy", WINDOW_AUTOSIZE);
-//		imshow("Ix", I[i].get_Ix());
-//		imshow("Iy", I[i].get_Iy());
-//		waitKey(0);
-//	}
+
+	G2.update();
 
     return 0;
 }
