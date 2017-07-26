@@ -29,6 +29,7 @@ private:
 	Mat Avg;
 	void updateAvg();
 	void updateGradient();
+	Mat generateA();
 public:
 	Gradient(ImageTensor G);
 	virtual ~Gradient();

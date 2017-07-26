@@ -94,3 +94,36 @@ void Gradient::update(){
 
 }
 
+Mat Gradient::generateA()
+{
+	int Imax = Gx.rows + 2;
+	int Jmax = Gx.cols + 2;
+
+	Mat A = Mat::zeros((Imax + 1)*(Jmax + 1),(Imax + 1)*(Jmax + 1), CV_32F);
+
+	for(int i = 0; i <= Imax; i++)
+	{
+		for(int j = 0; j <= Jmax; j++)
+		{
+			int row = i*(Jmax + 1) + j;
+
+			if((i != 0) && (j != 0) && (i != Imax) && (j != Jmax))
+			{
+				int btm = (i - 1)*(Jmax + 1) + j;
+				int top = (i + 1)*(Jmax + 1) + j;
+				int sx = i*(Jmax + 1) + (j - 1);
+				int dx = i*(Jmax + 1) + (j + 1);
+
+				A.at<float>(row, btm) = 1.0f;
+				A.at<float>(row, top) = 1.0f;
+				A.at<float>(row, sx) = 1.0f;
+				A.at<float>(row, dx) = 1.0f;
+				A.at<float>(row, row) = -4.0f;
+			}
+			else
+				A.at<float>(row, row) = 1.0f;
+		}
+	}
+	return A;
+}
+
