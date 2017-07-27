@@ -55,6 +55,11 @@ int main(int argc, char** argv) {
 
 	G2.update();
 
+	G2.poissonSolver();
+
+	//1029060109476
+	//257265027369
+
     return 0;
 }
 
@@ -89,7 +94,7 @@ vector<string> listFile(const char* dirPath){
                 	{
                 		string s = entry->d_name;
 						list.push_back(s);
-                		cout << entry->d_name << "\n";
+//                		cout << entry->d_name << "\n";
                 	}
                 }
                 closedir(pDIR);

@@ -16,6 +16,7 @@
 
 #include "Filter.h"
 #include "ImageTensor.h"
+#include "Utilities.h"
 
 using namespace std;
 using namespace cv;
@@ -27,13 +28,17 @@ private:
 	Mat Gy;
 	int l,N;
 	Mat Avg;
+	Mat divG;
+	Mat imageHDR;
 	void updateAvg();
 	void updateGradient();
-	Mat generateA();
+	void generateDivG();
+	Mat fastSineTransform(Mat v);
 public:
 	Gradient(ImageTensor G);
 	virtual ~Gradient();
 	void update();
+	void poissonSolver();
 };
 
 #endif /* HDRFUSION_HDRFUSION_GRADIENT_H_ */
