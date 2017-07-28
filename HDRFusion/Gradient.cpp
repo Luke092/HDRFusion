@@ -96,29 +96,37 @@ void Gradient::update(){
 
 void Gradient::generateDivG()
 {
-	int Imax = Gx.rows + 2;
-	int Jmax = Gx.cols + 2;
+//	int Imax = Gx.rows + 2;
+//	int Jmax = Gx.cols + 2;
 
-	divG = Mat::zeros((Imax), (Jmax), CV_32F);
+	divG = Mat::zeros(Gx.rows, Gx.cols, CV_32F);
 
-	for(int i = 0; i < Imax; i++)
+	for(int i = 0; i < divG.rows; i++)
 	{
-		for(int j = 0; j < Jmax; j++)
+		for(int j = 0; j < divG.cols; j++)
 		{
-			if((i != 0) && (j != 0) && (i != Imax-1) && (j != Jmax-1))
-			{
-				divG.at<float>(i-1, j-1) =(float) Gx.at<float>(i-1,j-1) - Gx.at<float>(i-1, j-2)
-									  + Gy.at<float>(i-1,j-1) - Gy.at<float>(i-2,j-1);
-			}
+			float a,b,c,d;
+
+			a = (float) Gx.at<float>(i,j);
+			c = (float) Gy.at<float>(i,j);
+
+			if( j - 1 >= 0)
+				b = Gx.at<float>(i,j-1);
+			else
+				b = 0.0f;
+
+			if( i - 1 >= 0)
+				d = Gy.at<float>(i-1,j);
+			else
+				d = 0.0f;
+
+			divG.at<float>(i,j) = a - b + c - d;
 		}
 	}
-	int point[2] = {1,1};
-	Mat cropG = crop(divG, point, Gx.rows, Gx.cols);
-	divG = cropG;
 
 //	namedWindow("divG", WINDOW_AUTOSIZE);
 //	Mat divGNorm;
-//	normalize(cropG, divGNorm, 1, 0, NORM_MINMAX);
+//	normalize(divG, divGNorm, 1, 0, NORM_MINMAX);
 //	imshow("divG", divGNorm);
 //	waitKey(0);
 }
@@ -135,7 +143,9 @@ void Gradient::poissonSolver()
 
 	generateDivG();
 
-	normalize(divG, divG, 0, 1, CV_MINMAX);
+	divG.convertTo(divG, CV_64F);
+
+//	normalize(divG, divG, 0, 1, CV_MINMAX);
 
 	/*
 	 *  % Solve the discrete Poisson equation
@@ -158,17 +168,17 @@ void Gradient::poissonSolver()
 	int n = divG.rows;
 	int m = divG.cols;
 
-	Mat L(1, n, CV_32F);
+	Mat L(1, n, CV_64F);
 	for(int i = 0; i < n; i++)
-		L.at<float>(0,i) =(float) 2*(1-cos(i*M_PI/(n+1)));
+		L.at<double>(0,i) =(double) 2*(1-cos(i*M_PI/(n+1)));
 
 
-	Mat LL = Mat::ones(n,n, CV_32F);
+	Mat LL = Mat::ones(n,n, CV_64F);
 	for(int i = 0; i < n; i++)
 	{
 		for(int j = 0; j < n; j++)
 		{
-			LL.at<float>(i,j) =(float) (2.0f/(n+1)) /(L.at<float>(0,i) + L.at<float>(0,j));
+			LL.at<double>(i,j) =(double) (2.0f/(n+1)) /(L.at<double>(0,i) + L.at<double>(0,j));
 		}
 	}
 
@@ -182,18 +192,23 @@ void Gradient::poissonSolver()
 	{
 		for(int j = 0; j < n; j++)
 		{
-			X.at<float>(i,j) *= LL.at<float>(i,j);
+			X.at<double>(i,j) *= LL.at<double>(i,j);
 		}
 	}
 
+//	normalize(X, X, 0, 1, NORM_MINMAX);
+	cout <<"prima" << X << endl;
+	namedWindow("image prima", WINDOW_AUTOSIZE);
+	imshow("image prima", X );
+	waitKey(0);
 	X2 = X.t();
 	X = fastSineTransform(X2);
 	X2 = X.t();
 	X = fastSineTransform(X2);
 
-	cout << X << endl;
 
-	normalize(X, X, 0, 1, CV_MINMAX);
+	normalize(X, X, 0, 1, NORM_MINMAX);
+	cout <<"dopo" << X << endl;
 	namedWindow("image", WINDOW_AUTOSIZE);
 	imshow("image", X );
 	waitKey(0);
@@ -260,31 +275,48 @@ Mat Gradient::fastSineTransform(Mat v)
       Y=V2(2:n+1,:);
 	 */
 
-	Mat V1 = Mat::zeros(v.rows+2, v.cols,CV_32F);
+	Mat V1 = Mat::zeros(v.rows+2, v.cols+2,CV_64F);
 	for(int i = 0; i < v.rows; i++)
 	{
 		for(int j = 0; j < v.cols; j++)
 		{
-			V1.at<float>(i+1,j) = v.at<float>(i, j);
+			V1.at<double>(i+1,j+1) = v.at<double>(i, j);
 		}
 	}
 
+//	for(int j = 0; j < V1.cols; j++)
+//	{
+//		Mat col = V1.col(j);
+//		Mat planes[] = {col, Mat::zeros(col.size(), CV_64F)};
+//		Mat complexI;
+//		merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
+//
+//		dft(complexI, complexI);            // this way the result may fit in the source matrix
+//
+//		split(complexI, planes);
+//
+//		Mat newCol = planes[1];
+//
+//		for(int i = 0; i < V1.rows; i++)
+//			V1.at<double>(i,j) = newCol.at<double>(i,0);
+//	}
+
 //	Mat padded;                            //expand input image to optimal size
-//	int m = getOptimalDFTSize(V1.rows);
-//	int n = getOptimalDFTSize(V1.cols); // on the border add zero values
-//	copyMakeBorder(V1, padded, 0, m - V1.rows, 0, n - V1.cols, BORDER_CONSTANT, Scalar::all(0));
-	Mat planes[] = {Mat_<float>(V1), Mat::zeros(V1.size(), CV_32F)};
+//	int m = getOptimalDFTSize(v.rows);
+//	int n = getOptimalDFTSize(v.cols); // on the border add zero values
+//	copyMakeBorder(v, padded, 0, m - v.rows, 0, n - v.cols, BORDER_CONSTANT, Scalar::all(0));
+	Mat planes[] = {Mat_<double>(V1), Mat::zeros(V1.size(), CV_64F)};
 	Mat complexI;
 	merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
 
-	dft(complexI, complexI, DFT_COMPLEX_OUTPUT);            // this way the result may fit in the source matrix
+	dft(complexI, complexI);            // this way the result may fit in the source matrix
 
 	split(complexI, planes);
 
 	Mat V2 = planes[1];
 	int point[2] = {1,1};
-	Mat res = crop(V2, point, V2.rows, V2.cols);
-	normalize(res, res, 0, 1, NORM_MINMAX);
+	Mat res = crop(V1, point, V1.rows, V1.cols);
+//	normalize(res, res, 0, 1, NORM_MINMAX);
 	// cout << res << endl;
 	return res;
 }
