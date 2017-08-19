@@ -33,15 +33,12 @@ private:
 	void updateAvg();
 	void updateGradient();
 	void generateDivG();
-	Mat fastSineTransform(Mat v);
-	void dst(double *gtest, double *gfinal,int h,int w);
-	void idst(double *gtest, double *gfinal,int h,int w);
-	void transpose(double *mat, double *mat_t,int h,int w);
 public:
 	Gradient(ImageTensor G);
 	virtual ~Gradient();
 	void update();
 	void poissonSolver();
+	void poissonSolverGS();
 };
 
 #endif /* HDRFUSION_HDRFUSION_GRADIENT_H_ */
