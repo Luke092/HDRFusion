@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 
 	G2.update();
 
-	G2.poissonSolverGS();
+	G2.poissonSolver();
 
 	//1029060109476
 	//257265027369

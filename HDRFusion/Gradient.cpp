@@ -39,7 +39,7 @@ void Gradient::updateAvg()
 	{
 		for(int x = 0; x < N; x++)
 		{
-			Avg.at<float>(y,x) = (float) 1.0f/(3*N);
+			Avg.at<float>(y,x) = (float) 1.0f/(N*3);
 		}
 	}
 }
@@ -68,19 +68,31 @@ void Gradient::updateGradient()
 	{
 		for(int x = 0; x < Gx.cols; x++)
 		{
-			float _v2x = (float) V2x.at<float>(y,x);
-			float _v2y = (float) V2y.at<float>(y,x);
+			float _v2x = (float) Gx.at<float>(y,x);
+			float _v2y = (float) Gy.at<float>(y,x);
 			Gx.at<float>(y,x) = _v2x * expf(-abs(_v2x) / (1 + abs(_v2x)));
 			Gy.at<float>(y,x) = _v2y * expf(-abs(_v2y) / (1 + abs(_v2y)));
 		}
 	}
+
+//	Mat divGx = Mat::zeros(Gx.rows, Gx.cols, CV_32F);
+//	namedWindow("Gx", WINDOW_AUTOSIZE);
+//	normalize(Gx, divGx, 0, 1, NORM_MINMAX);
+//	imshow("Gx", divGx);
+//	waitKey(0);
+//
+//	Mat divGy = Mat::zeros(Gy.rows, Gy.cols, CV_32F);
+//	namedWindow("Gy", WINDOW_AUTOSIZE);
+//	normalize(Gy, divGy, 0, 1, NORM_MINMAX);
+//	imshow("Gy", divGy);
+//	waitKey(0);
 }
 
 void Gradient::update(){
 	do{
 		l++;
 		N = pow(2,l) + 1;
-		this->updateGradient();
+		//this->updateGradient();
 		/*Mat GxNorm, GyNorm;
 		GxNorm = Mat(Gx.rows, Gx.cols, CV_32FC1);
 		GyNorm = Mat(Gy.rows, Gy.cols, CV_32FC1);
@@ -92,6 +104,7 @@ void Gradient::update(){
 		imshow("Gy", GyNorm);
 		waitKey(0);*/
 	} while(N < Gx.cols || N < Gy.rows);
+	//while(l < 12);
 
 }
 
@@ -101,6 +114,18 @@ void Gradient::generateDivG()
 //	int Jmax = Gx.cols + 2;
 
 	divG = Mat::zeros(Gx.rows, Gx.cols, CV_32F);
+
+//	Mat divGx = Mat::zeros(Gx.rows, Gx.cols, CV_32F);
+//	namedWindow("Gx", WINDOW_AUTOSIZE);
+//	normalize(Gx, divGx, 0, 1, NORM_MINMAX);
+//	imshow("Gx", divGx);
+//	waitKey(0);
+//
+//	Mat divGy = Mat::zeros(Gy.rows, Gy.cols, CV_32F);
+//	namedWindow("Gy", WINDOW_AUTOSIZE);
+//	normalize(Gy, divGy, 0, 1, NORM_MINMAX);
+//	imshow("Gy", divGy);
+//	waitKey(0);
 
 	for(int i = 0; i < divG.rows; i++)
 	{
@@ -138,6 +163,12 @@ void Gradient::poissonSolver(){
 
 	Mat U = Mat::zeros(divG.rows, divG.cols, CV_32F);
 	Mat U1 = Mat::zeros(divG.rows, divG.cols, CV_32F);
+
+	Mat div = Mat::zeros(divG.rows, divG.cols, CV_32F);
+	namedWindow("divG", WINDOW_AUTOSIZE);
+	normalize(divG, div, 0, 1, NORM_MINMAX);
+	imshow("divG", div);
+	waitKey(0);
 
 	double pErr = std::numeric_limits<double>::infinity();
 	double err = std::numeric_limits<double>::infinity();
@@ -189,7 +220,7 @@ void Gradient::poissonSolver(){
 		U1 = Mat::zeros(U.size(), CV_32F);
 
 		cout << "Error: " << pErr - err << endl;
-	}while (pErr - err > pow(10,5));
+	}while (pErr - err > pow(10,-5));
 	cout << "Error: " << pErr - err << endl;
 
 	namedWindow("U", WINDOW_AUTOSIZE);
@@ -203,6 +234,12 @@ void Gradient::poissonSolver(){
 void Gradient::poissonSolverGS(){
 	// Gauss-Seidel method
 	generateDivG();
+
+	Mat div = Mat::zeros(divG.rows, divG.cols, CV_32F);
+	namedWindow("divG", WINDOW_AUTOSIZE);
+	normalize(divG, div, 0, 1, NORM_MINMAX);
+	imshow("divG", div);
+	waitKey(0);
 
 	Mat U = Mat::zeros(divG.rows, divG.cols, CV_32F);
 	Mat U1 = Mat::zeros(divG.rows, divG.cols, CV_32F);
@@ -280,7 +317,8 @@ void Gradient::poissonSolverGS(){
 		U1 = Mat::zeros(U.size(), CV_32F);
 
 		cout << "Error: " << pErr - err << endl;
-	}while (pErr - err > 20000);
+	}while (pErr - err > 100000000000);
+	//100000000000
 	cout << "Error: " << pErr - err << endl;
 
 	namedWindow("U", WINDOW_AUTOSIZE);

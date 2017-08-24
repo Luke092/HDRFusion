@@ -18,17 +18,43 @@ Mat Filter::apply(const Mat img){
 }
 
 Mat Filter::Gx_kernel(){
-	Mat kernelH(1, 3, CV_32F);
+//	Mat kernelH(1, 3, CV_32F);
+//	kernelH.at<float>(0,0) = 1.0f;
+//	kernelH.at<float>(0,1) = 0.0f;
+//	kernelH.at<float>(0,2) = -1.0f;
+	Mat kernelH(3, 3, CV_32F);
+
 	kernelH.at<float>(0,0) = 1.0f;
 	kernelH.at<float>(0,1) = 0.0f;
 	kernelH.at<float>(0,2) = -1.0f;
+
+	kernelH.at<float>(1,0) = 2.0f;
+	kernelH.at<float>(1,1) = 0.0f;
+	kernelH.at<float>(1,2) = -2.0f;
+
+	kernelH.at<float>(2,0) = 1.0f;
+	kernelH.at<float>(2,1) = 0.0f;
+	kernelH.at<float>(2,2) = -1.0f;
 	return kernelH.clone();
 }
 
 Mat Filter::Gy_kernel(){
-	Mat kernelH(3, 1, CV_32F);
+//	Mat kernelH(3, 1, CV_32F);
+//	kernelH.at<float>(0,0) = 1.0f;
+//	kernelH.at<float>(1,0) = 0.0f;
+//	kernelH.at<float>(2,0) = -1.0f;
+	Mat kernelH(3, 3, CV_32F);
+
 	kernelH.at<float>(0,0) = 1.0f;
+	kernelH.at<float>(0,1) = 2.0f;
+	kernelH.at<float>(0,2) = 1.0f;
+
 	kernelH.at<float>(1,0) = 0.0f;
+	kernelH.at<float>(1,1) = 0.0f;
+	kernelH.at<float>(1,2) = 0.0f;
+
 	kernelH.at<float>(2,0) = -1.0f;
+	kernelH.at<float>(2,1) = -2.0f;
+	kernelH.at<float>(2,2) = -1.0f;
 	return kernelH.clone();
 }
