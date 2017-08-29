@@ -24,10 +24,6 @@ Gradient::Gradient(ImageTensor G)
 			Gy.at<float>(y,x) = Vy * expf(-abs(Vy) / (1 + abs(Vy)));
 		}
 	}
-<<<<<<< Updated upstream
-	//updateAvg();
-=======
->>>>>>> Stashed changes
 }
 
 Gradient::~Gradient()
@@ -72,17 +68,12 @@ void Gradient::updateGradient()
 		{
 			float _v2x = (float) V2x.at<float>(y,x);
 			float _v2y = (float) V2y.at<float>(y,x);
-<<<<<<< Updated upstream
-			Gx.at<float>(y,x) = _v2x * expf(-abs(_v2x) / (1 + abs(_v2x)));
-			Gy.at<float>(y,x) = _v2y * expf(-abs(_v2y) / (1 + abs(_v2y)));
-=======
 
 			float gx = _v2x * expf(-abs(_v2x) / (1 + abs(_v2x)));
 			float gy = _v2y * expf(-abs(_v2y) / (1 + abs(_v2y)));
 
 			Gx.at<float>(y,x) = (float) gx;
 			Gy.at<float>(y,x) = (float) gy;
->>>>>>> Stashed changes
 		}
 	}
 }
