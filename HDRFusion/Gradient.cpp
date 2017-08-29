@@ -9,7 +9,7 @@
 
 Gradient::Gradient(ImageTensor G)
 {
-	l = 1;
+	l = 0;
 	N = pow(2, l) + 1;
 	Gx = Mat(G.getH(), G.getW(), CV_32F);
 	Gy = Mat(G.getH(), G.getW(), CV_32F);
@@ -24,7 +24,10 @@ Gradient::Gradient(ImageTensor G)
 			Gy.at<float>(y,x) = Vy * expf(-abs(Vy) / (1 + abs(Vy)));
 		}
 	}
+<<<<<<< Updated upstream
 	//updateAvg();
+=======
+>>>>>>> Stashed changes
 }
 
 Gradient::~Gradient()
@@ -39,7 +42,7 @@ void Gradient::updateAvg()
 	{
 		for(int x = 0; x < N; x++)
 		{
-			Avg.at<float>(y,x) = (float) 1.0f/(N*3);
+			Avg.at<float>(y,x) = (float) 1.0f / (N*3);
 		}
 	}
 }
@@ -50,7 +53,6 @@ void Gradient::updateGradient()
 	Mat V2x = fx.apply(fx.apply(Gx));
 
 	Mat AvgT;
-	//transpose(Avg, AvgT);
 	AvgT = Avg.t();
 	Filter fy(AvgT);
 	Mat V2y = fy.apply(fy.apply(Gy));
@@ -70,31 +72,28 @@ void Gradient::updateGradient()
 		{
 			float _v2x = (float) V2x.at<float>(y,x);
 			float _v2y = (float) V2y.at<float>(y,x);
+<<<<<<< Updated upstream
 			Gx.at<float>(y,x) = _v2x * expf(-abs(_v2x) / (1 + abs(_v2x)));
 			Gy.at<float>(y,x) = _v2y * expf(-abs(_v2y) / (1 + abs(_v2y)));
+=======
+
+			float gx = _v2x * expf(-abs(_v2x) / (1 + abs(_v2x)));
+			float gy = _v2y * expf(-abs(_v2y) / (1 + abs(_v2y)));
+
+			Gx.at<float>(y,x) = (float) gx;
+			Gy.at<float>(y,x) = (float) gy;
+>>>>>>> Stashed changes
 		}
 	}
-
-//	Mat divGx = Mat::zeros(Gx.rows, Gx.cols, CV_32F);
-//	namedWindow("Gx", WINDOW_AUTOSIZE);
-//	normalize(Gx, divGx, 0, 1, NORM_MINMAX);
-//	imshow("Gx", divGx);
-//	waitKey(0);
-//
-//	Mat divGy = Mat::zeros(Gy.rows, Gy.cols, CV_32F);
-//	namedWindow("Gy", WINDOW_AUTOSIZE);
-//	normalize(Gy, divGy, 0, 1, NORM_MINMAX);
-//	imshow("Gy", divGy);
-//	waitKey(0);
 }
 
 void Gradient::update(){
 	do{
 		l++;
 		N = pow(2,l) + 1;
-//		updateAvg();
-//		this->updateGradient();
-		/*Mat GxNorm, GyNorm;
+		/*this->updateAvg();
+		this->updateGradient();
+		Mat GxNorm, GyNorm;
 		GxNorm = Mat(Gx.rows, Gx.cols, CV_32FC1);
 		GyNorm = Mat(Gy.rows, Gy.cols, CV_32FC1);
 		normalize(Gx, GxNorm, 1, 0, NORM_MINMAX);
@@ -103,7 +102,11 @@ void Gradient::update(){
 		namedWindow("Gy", WINDOW_AUTOSIZE);
 		imshow("Gx", GxNorm);
 		imshow("Gy", GyNorm);
-		waitKey(0);*/
+		waitKey(0);
+
+		Gx = GxNorm.clone();
+		Gy = GyNorm.clone();*/
+
 	} while(N < Gx.cols || N < Gy.rows);
 	//while(l < 12);
 
@@ -111,22 +114,7 @@ void Gradient::update(){
 
 void Gradient::generateDivG()
 {
-//	int Imax = Gx.rows + 2;
-//	int Jmax = Gx.cols + 2;
-
 	divG = Mat::zeros(Gx.rows, Gx.cols, CV_32F);
-
-//	Mat divGx = Mat::zeros(Gx.rows, Gx.cols, CV_32F);
-//	namedWindow("Gx", WINDOW_AUTOSIZE);
-//	normalize(Gx, divGx, 0, 1, NORM_MINMAX);
-//	imshow("Gx", divGx);
-//	waitKey(0);
-//
-//	Mat divGy = Mat::zeros(Gy.rows, Gy.cols, CV_32F);
-//	namedWindow("Gy", WINDOW_AUTOSIZE);
-//	normalize(Gy, divGy, 0, 1, NORM_MINMAX);
-//	imshow("Gy", divGy);
-//	waitKey(0);
 
 	for(int i = 0; i < divG.rows; i++)
 	{
@@ -150,12 +138,6 @@ void Gradient::generateDivG()
 			divG.at<float>(i,j) = a - b + c - d;
 		}
 	}
-
-//	namedWindow("divG", WINDOW_AUTOSIZE);
-//	Mat divGNorm;
-//	normalize(divG, divGNorm, 1, 0, NORM_MINMAX);
-//	imshow("divG", divGNorm);
-//	waitKey(0);
 }
 
 void Gradient::poissonSolver(){
@@ -208,10 +190,33 @@ void Gradient::poissonSolver(){
 
 		for(int i = 0; i < U.rows; i++){
 			for(int j = 0; j < U.cols; j++){
-				float oldValue, newValue;
-				oldValue = (float) U.at<float>(i,j);
-				newValue = (float) U1.at<float>(i,j);
-				err += pow(newValue - oldValue, 2);
+				float u_1i_j;
+				float u_i1_j;
+				float u_i_1j;
+				float u_i_j1;
+				if(i != 0)
+					u_1i_j = (float) -1 * U1.at<float>(i - 1,j);
+				else
+					u_1i_j = 0.0f;
+				if(i != U.rows - 1)
+					u_i1_j = (float) -1 * U1.at<float>(i + 1,j);
+				else
+					u_i1_j = 0.0f;
+				if(j != 0)
+					u_i_1j = (float) -1 * U1.at<float>(i,j - 1);
+				else
+					u_i_1j = 0.0f;
+				if(j != U.cols - 1)
+					u_i_j1 = (float) -1 * U1.at<float>(i,j + 1);
+				else
+					u_i_j1 = 0.0f;
+
+				float u_i_j = (float) 4 * U1.at<float>(i,j);
+
+				float real, estimate;
+				estimate = u_i_j +  u_1i_j + u_i1_j + u_i_1j + u_i_j1;
+				real = (float) divG.at<float>(i,j);
+				err += pow(real - estimate, 2);
 			}
 		}
 
@@ -224,10 +229,9 @@ void Gradient::poissonSolver(){
 	}while (pErr - err > pow(10,-4));
 	cout << "Error: " << pErr - err << endl;
 
-	namedWindow("U", WINDOW_AUTOSIZE);
+	namedWindow("U", WINDOW_KEEPRATIO);
 	normalize(U, U, 0, 1, NORM_MINMAX);
 	imshow("U", U);
-	waitKey(0);
 	waitKey(0);
 	waitKey(0);
 }
@@ -318,11 +322,10 @@ void Gradient::poissonSolverGS(){
 		U1 = Mat::zeros(U.size(), CV_32F);
 
 		cout << "Error: " << pErr - err << endl;
-	}while (pErr - err > pow(10,-5));
-	//100000000000
+	}while (pErr - err > powf(10, -5));
 	cout << "Error: " << pErr - err << endl;
 
-	namedWindow("U", WINDOW_AUTOSIZE);
+	namedWindow("U", WINDOW_KEEPRATIO);
 	normalize(U, U, 0, 1, NORM_MINMAX);
 	imshow("U", U);
 	waitKey(0);
@@ -340,43 +343,7 @@ void Gradient::addColor(vector<Mat> stack)
 
 	for(int k = 0; k < stack.size(); k++)
 	{
-//		normalize(stack.at(k), stack.at(k), 0, 1, NORM_MINMAX);
 		stack.at(k).convertTo(stack.at(k), CV_32FC3);
-
-//		Mat img = stack.at(k);
-//		Mat ch1,ch2,ch3;
-//		Mat channels[3];
-//		split(img, channels);
-//		ch1 = channels[0];
-//		normalize(ch1, ch1, 0, 1, NORM_MINMAX);
-//		ch2 = channels[1];
-//		normalize(ch2, ch2, 0, 1, NORM_MINMAX);
-//		ch3 = channels[2];
-//		normalize(ch3, ch3, 0, 1, NORM_MINMAX);
-//
-//		string title1 = "image channel 1";
-//		string title2 = "image channel 2";
-//		string title3 = "image channel 3";
-//
-//
-//		namedWindow(title1, WINDOW_AUTOSIZE);
-//		imshow(title1, ch1);
-//		waitKey(0);
-//
-//		namedWindow(title2, WINDOW_AUTOSIZE);
-//		imshow(title2, ch2);
-//		waitKey(0);
-//
-//		namedWindow(title3, WINDOW_AUTOSIZE);
-//		imshow(title3, ch3);
-//		waitKey(0);
-//
-//		channel1.push_back(ch1);
-//		channel2.push_back(ch2);
-//		channel3.push_back(ch3);
-//		namedWindow(k +"", WINDOW_AUTOSIZE);
-//		imshow(k+"", stack.at(k));
-//		waitKey(0);
 	}
 
 	for(int i = 0; i < U.rows; i++)
@@ -425,9 +392,6 @@ void Gradient::addColor(vector<Mat> stack)
 			result.at<Vec3f>(i,j) = pixel;
 		}
 	}
-	//namedWindow("partial", WINDOW_AUTOSIZE);
-	//normalize(partial, partial, 0, 1, NORM_MINMAX);
-	//imshow("partial", partial);
 
 	namedWindow("result", WINDOW_AUTOSIZE);
 	imshow("result", result);
