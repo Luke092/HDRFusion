@@ -24,7 +24,7 @@ Gradient::Gradient(ImageTensor G)
 			Gy.at<float>(y,x) = Vy * expf(-abs(Vy) / (1 + abs(Vy)));
 		}
 	}
-	updateAvg();
+	//updateAvg();
 }
 
 Gradient::~Gradient()
@@ -68,8 +68,8 @@ void Gradient::updateGradient()
 	{
 		for(int x = 0; x < Gx.cols; x++)
 		{
-			float _v2x = (float) Gx.at<float>(y,x);
-			float _v2y = (float) Gy.at<float>(y,x);
+			float _v2x = (float) V2x.at<float>(y,x);
+			float _v2y = (float) V2y.at<float>(y,x);
 			Gx.at<float>(y,x) = _v2x * expf(-abs(_v2x) / (1 + abs(_v2x)));
 			Gy.at<float>(y,x) = _v2y * expf(-abs(_v2y) / (1 + abs(_v2y)));
 		}
@@ -92,7 +92,8 @@ void Gradient::update(){
 	do{
 		l++;
 		N = pow(2,l) + 1;
-		//this->updateGradient();
+//		updateAvg();
+//		this->updateGradient();
 		/*Mat GxNorm, GyNorm;
 		GxNorm = Mat(Gx.rows, Gx.cols, CV_32FC1);
 		GyNorm = Mat(Gy.rows, Gy.cols, CV_32FC1);
@@ -161,7 +162,7 @@ void Gradient::poissonSolver(){
 	// Jacobi's method
 	generateDivG();
 
-	Mat U = Mat::zeros(divG.rows, divG.cols, CV_32F);
+	U = Mat::zeros(divG.rows, divG.cols, CV_32F);
 	Mat U1 = Mat::zeros(divG.rows, divG.cols, CV_32F);
 
 	Mat div = Mat::zeros(divG.rows, divG.cols, CV_32F);
@@ -220,7 +221,7 @@ void Gradient::poissonSolver(){
 		U1 = Mat::zeros(U.size(), CV_32F);
 
 		cout << "Error: " << pErr - err << endl;
-	}while (pErr - err > pow(10,-5));
+	}while (pErr - err > pow(10,-4));
 	cout << "Error: " << pErr - err << endl;
 
 	namedWindow("U", WINDOW_AUTOSIZE);
@@ -241,7 +242,7 @@ void Gradient::poissonSolverGS(){
 	imshow("divG", div);
 	waitKey(0);
 
-	Mat U = Mat::zeros(divG.rows, divG.cols, CV_32F);
+	U = Mat::zeros(divG.rows, divG.cols, CV_32F);
 	Mat U1 = Mat::zeros(divG.rows, divG.cols, CV_32F);
 
 	double pErr = std::numeric_limits<double>::infinity();
@@ -317,7 +318,7 @@ void Gradient::poissonSolverGS(){
 		U1 = Mat::zeros(U.size(), CV_32F);
 
 		cout << "Error: " << pErr - err << endl;
-	}while (pErr - err > 100000000000);
+	}while (pErr - err > pow(10,-5));
 	//100000000000
 	cout << "Error: " << pErr - err << endl;
 
@@ -326,5 +327,110 @@ void Gradient::poissonSolverGS(){
 	imshow("U", U);
 	waitKey(0);
 	waitKey(0);
+}
 
+void Gradient::addColor(vector<Mat> stack)
+{
+	result = Mat::zeros(U.rows, U.cols, CV_32FC3);
+	//Mat partial = Mat::zeros(U.rows, U.cols, CV_32FC1);
+	vector <Mat> channel1,channel2,channel3;
+
+	float epsilon = 0.01;
+	float beta = 0.8;
+
+	for(int k = 0; k < stack.size(); k++)
+	{
+//		normalize(stack.at(k), stack.at(k), 0, 1, NORM_MINMAX);
+		stack.at(k).convertTo(stack.at(k), CV_32FC3);
+
+//		Mat img = stack.at(k);
+//		Mat ch1,ch2,ch3;
+//		Mat channels[3];
+//		split(img, channels);
+//		ch1 = channels[0];
+//		normalize(ch1, ch1, 0, 1, NORM_MINMAX);
+//		ch2 = channels[1];
+//		normalize(ch2, ch2, 0, 1, NORM_MINMAX);
+//		ch3 = channels[2];
+//		normalize(ch3, ch3, 0, 1, NORM_MINMAX);
+//
+//		string title1 = "image channel 1";
+//		string title2 = "image channel 2";
+//		string title3 = "image channel 3";
+//
+//
+//		namedWindow(title1, WINDOW_AUTOSIZE);
+//		imshow(title1, ch1);
+//		waitKey(0);
+//
+//		namedWindow(title2, WINDOW_AUTOSIZE);
+//		imshow(title2, ch2);
+//		waitKey(0);
+//
+//		namedWindow(title3, WINDOW_AUTOSIZE);
+//		imshow(title3, ch3);
+//		waitKey(0);
+//
+//		channel1.push_back(ch1);
+//		channel2.push_back(ch2);
+//		channel3.push_back(ch3);
+//		namedWindow(k +"", WINDOW_AUTOSIZE);
+//		imshow(k+"", stack.at(k));
+//		waitKey(0);
+	}
+
+	for(int i = 0; i < U.rows; i++)
+	{
+		for(int j = 0; j < U.cols; j++)
+		{
+			Vec3f pixel = result.at<Vec3f>(i,j);
+
+			float num;
+			float denom;
+			float C[3];
+			float Cin;
+			float weight;
+			float fIn = 0.0f;
+
+			for(int c = 0; c < 3; c++)
+			{
+				num = 0.0f;
+				denom = 0.0f;
+				C[c] = 0.0f;
+
+				for(int k = 0; k < stack.size(); k++)
+				{
+					weight = 0.0f;
+					Cin = stack.at(k).at<Vec3f>(i,j).val[c];
+
+					if( Cin > 0.5)
+						weight = 1 - Cin + epsilon;
+					else
+						weight = Cin + epsilon;
+
+					num += weight * Cin;
+					denom += weight;
+				}
+
+				C[c] = num / denom;
+			}
+			fIn = (C[0] + C[1] + C[2]) / 3;
+
+			for(int c = 0; c < 3; c++)
+			{
+				float temp = C[c] / fIn;
+				pixel.val[c] = pow(temp, beta) * U.at<float>(i,j);
+			}
+
+			result.at<Vec3f>(i,j) = pixel;
+		}
+	}
+	//namedWindow("partial", WINDOW_AUTOSIZE);
+	//normalize(partial, partial, 0, 1, NORM_MINMAX);
+	//imshow("partial", partial);
+
+	namedWindow("result", WINDOW_AUTOSIZE);
+	imshow("result", result);
+	waitKey(0);
+	waitKey(0);
 }

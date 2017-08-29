@@ -29,6 +29,7 @@ private:
 	int l,N;
 	Mat Avg;
 	Mat divG;
+	Mat U;
 	Mat result;
 	void updateAvg();
 	void updateGradient();
@@ -39,6 +40,7 @@ public:
 	void update();
 	void poissonSolver();
 	void poissonSolverGS();
+	void addColor(vector<Mat> stack);
 };
 
 #endif /* HDRFUSION_HDRFUSION_GRADIENT_H_ */

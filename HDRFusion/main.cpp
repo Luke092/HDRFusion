@@ -34,6 +34,7 @@ bool has_suffix(const string& s, const string& suffix);
 
 int main(int argc, char** argv) {
 	vector<string> list = listFile(".");
+	vector<Mat> stackColor;
 	vector<Mat> stack;
 	vector<Derivate> I;
 	for(unsigned int i = 0; i < list.size(); i++)
@@ -41,6 +42,7 @@ int main(int argc, char** argv) {
 		    Mat m = imread(list[i], CV_LOAD_IMAGE_COLOR);
 		    namedWindow(list[i], WINDOW_AUTOSIZE);
 
+		    stackColor.push_back(m);
 		    Mat img = toBN(m);
 		    stack.push_back(img);
 		    I.push_back(Derivate(img));
@@ -55,7 +57,9 @@ int main(int argc, char** argv) {
 
 	G2.update();
 
-	G2.poissonSolver();
+	G2.poissonSolverGS();
+
+	G2.addColor(stackColor);
 
 	//1029060109476
 	//257265027369
