@@ -79,8 +79,8 @@ void Gradient::updateGradient()
 			float _v1x = (float) Vx1.at<float>(y,x);
 			float _v1y = (float) Vy1.at<float>(y,x);
 
-			float gx = _v2x * expf(-abs(_v1x) / (1 + abs(_v2x)));
-			float gy = _v2y * expf(-abs(_v1y) / (1 + abs(_v2y)));
+			float gx = _v1x * expf(-abs(_v1x) / (1 + abs(_v2x)));
+			float gy = _v1y * expf(-abs(_v1y) / (1 + abs(_v2y)));
 
 			Gx.at<float>(y,x) = (float) gx;
 			Gy.at<float>(y,x) = (float) gy;
@@ -226,9 +226,9 @@ void Gradient::poissonSolver(){
 		U = U1.clone();
 		U1 = Mat::zeros(U.size(), CV_32F);
 
-		cout << "Error: " << pErr - err << endl;
-	}while (pErr - err > pow(10,-4));
-	cout << "Error: " << pErr - err << endl;
+		cout << "Error: " << err << endl;
+	}while (err > pow(10,-6));
+	cout << "Error: " << err << endl;
 
 	namedWindow("U", WINDOW_KEEPRATIO);
 	normalize(U, U, 0, 1, NORM_MINMAX);
@@ -322,9 +322,9 @@ void Gradient::poissonSolverGS(){
 		U = U1.clone();
 		U1 = Mat::zeros(U.size(), CV_32F);
 
-		cout << "Error: " << pErr - err << endl;
-	}while (pErr - err > powf(10, -4));
-	cout << "Error: " << pErr - err << endl;
+		//cout << "Error: " << err << endl;
+	}while (err > powf(10, -2));
+	cout << "Error: " << err << endl;
 
 	namedWindow("U", WINDOW_KEEPRATIO);
 	normalize(U, U, 0, 1, NORM_MINMAX);
