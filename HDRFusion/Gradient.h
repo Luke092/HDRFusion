@@ -26,15 +26,19 @@ class Gradient
 private:
 	Mat Gx;
 	Mat Gy;
+	Mat Gx1;
+	Mat Gy1;
+	Mat Vx1;
+	Mat Vy1;
 	int l,N;
 	Mat Avg;
-	Mat divG;
-	Mat U;
 	Mat result;
 	void updateAvg();
 	void updateGradient();
 	void generateDivG();
 public:
+	Mat divG;
+	Mat U;
 	Gradient(ImageTensor G);
 	virtual ~Gradient();
 	void update();

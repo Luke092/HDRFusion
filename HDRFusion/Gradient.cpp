@@ -13,6 +13,10 @@ Gradient::Gradient(ImageTensor G)
 	N = pow(2, l) + 1;
 	Gx = Mat(G.getH(), G.getW(), CV_32F);
 	Gy = Mat(G.getH(), G.getW(), CV_32F);
+	Gx1 = Mat(G.getH(), G.getW(), CV_32F);
+	Gy1 = Mat(G.getH(), G.getW(), CV_32F);
+	Vx1 = Mat(G.getH(), G.getW(), CV_32F);
+	Vy1 = Mat(G.getH(), G.getW(), CV_32F);
 
 	for(int y = 0; y < G.getH(); y++)
 	{
@@ -21,7 +25,11 @@ Gradient::Gradient(ImageTensor G)
 			float Vx = G.getTensor(x, y).getVx();
 			float Vy = G.getTensor(x, y).getVy();
 			Gx.at<float>(y,x) = Vx * expf(-abs(Vx) / (1 + abs(Vx)));
+			Gx1.at<float>(y,x) = Vx * expf(-abs(Vx) / (1 + abs(Vx)));
 			Gy.at<float>(y,x) = Vy * expf(-abs(Vy) / (1 + abs(Vy)));
+			Gy1.at<float>(y,x) = Vy * expf(-abs(Vy) / (1 + abs(Vy)));
+			Vx1.at<float>(y,x) = Vx;
+			Vy1.at<float>(y,x) = Vy;
 		}
 	}
 }
@@ -46,12 +54,12 @@ void Gradient::updateAvg()
 void Gradient::updateGradient()
 {
 	Filter fx(Avg);
-	Mat V2x = fx.apply(fx.apply(Gx));
+	Mat V2x = fx.apply(fx.apply(Gx1));
 
 	Mat AvgT;
 	AvgT = Avg.t();
 	Filter fy(AvgT);
-	Mat V2y = fy.apply(fy.apply(Gy));
+	Mat V2y = fy.apply(fy.apply(Gy1));
 
 	for(int y = 0; y < Gy.rows; y++){
 		for(int x = 0; x < Gx.cols; x++){
@@ -68,9 +76,11 @@ void Gradient::updateGradient()
 		{
 			float _v2x = (float) V2x.at<float>(y,x);
 			float _v2y = (float) V2y.at<float>(y,x);
+			float _v1x = (float) Vx1.at<float>(y,x);
+			float _v1y = (float) Vy1.at<float>(y,x);
 
-			float gx = _v2x * expf(-abs(_v2x) / (1 + abs(_v2x)));
-			float gy = _v2y * expf(-abs(_v2y) / (1 + abs(_v2y)));
+			float gx = _v2x * expf(-abs(_v1x) / (1 + abs(_v2x)));
+			float gy = _v2y * expf(-abs(_v1y) / (1 + abs(_v2y)));
 
 			Gx.at<float>(y,x) = (float) gx;
 			Gy.at<float>(y,x) = (float) gy;
@@ -82,24 +92,24 @@ void Gradient::update(){
 	do{
 		l++;
 		N = pow(2,l) + 1;
-		/*this->updateAvg();
+		this->updateAvg();
 		this->updateGradient();
 		Mat GxNorm, GyNorm;
 		GxNorm = Mat(Gx.rows, Gx.cols, CV_32FC1);
 		GyNorm = Mat(Gy.rows, Gy.cols, CV_32FC1);
-		normalize(Gx, GxNorm, 1, 0, NORM_MINMAX);
-		normalize(Gy, GyNorm, 1, 0, NORM_MINMAX);
+		normalize(Gx, GxNorm, 0, 1, NORM_MINMAX);
+		normalize(Gy, GyNorm, 0, 1, NORM_MINMAX);
 		namedWindow("Gx", WINDOW_AUTOSIZE);
 		namedWindow("Gy", WINDOW_AUTOSIZE);
 		imshow("Gx", GxNorm);
 		imshow("Gy", GyNorm);
 		waitKey(0);
 
-		Gx = GxNorm.clone();
-		Gy = GyNorm.clone();*/
+		//Gx = GxNorm.clone();
+		//Gy = GyNorm.clone();
 
 	} while(N < Gx.cols || N < Gy.rows);
-	//while(l < 12);
+	//while(l < 11);
 
 }
 
@@ -313,7 +323,7 @@ void Gradient::poissonSolverGS(){
 		U1 = Mat::zeros(U.size(), CV_32F);
 
 		cout << "Error: " << pErr - err << endl;
-	}while (pErr - err > powf(10, -5));
+	}while (pErr - err > powf(10, -4));
 	cout << "Error: " << pErr - err << endl;
 
 	namedWindow("U", WINDOW_KEEPRATIO);
@@ -377,7 +387,7 @@ void Gradient::addColor(vector<Mat> stack)
 			for(int c = 0; c < 3; c++)
 			{
 				float temp = C[c] / fIn;
-				pixel.val[c] = pow(temp, beta) * U.at<float>(i,j);
+				pixel.val[c] = powf(temp, beta) * U.at<float>(i,j);
 			}
 
 			result.at<Vec3f>(i,j) = pixel;

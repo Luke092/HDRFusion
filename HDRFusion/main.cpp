@@ -61,6 +61,12 @@ int main(int argc, char** argv) {
 
 	G2.addColor(stackColor);
 
+	normalize(G2.divG, G2.divG,0, 255, NORM_MINMAX);
+	normalize(G2.U, G2.U,0, 255, NORM_MINMAX);
+	imwrite("divG.jpg",G2.divG);
+	imwrite("U.jpg",G2.U);
+
+
 	//1029060109476
 	//257265027369
 
