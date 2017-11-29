@@ -54,12 +54,12 @@ void Gradient::updateAvg()
 void Gradient::updateGradient()
 {
 	Filter fx(Avg);
-	Mat V2x = fx.apply(fx.apply(Gx1));
+	Mat V2x = fx.apply(fx.apply(Gx));
 
 	Mat AvgT;
 	AvgT = Avg.t();
 	Filter fy(AvgT);
-	Mat V2y = fy.apply(fy.apply(Gy1));
+	Mat V2y = fy.apply(fy.apply(Gy));
 
 	for(int y = 0; y < Gy.rows; y++){
 		for(int x = 0; x < Gx.cols; x++){
@@ -79,11 +79,11 @@ void Gradient::updateGradient()
 			float _v1x = (float) Vx1.at<float>(y,x);
 			float _v1y = (float) Vy1.at<float>(y,x);
 
-			float gx = _v1x * expf(-abs(_v1x) / (1 + abs(_v2x)));
-			float gy = _v1y * expf(-abs(_v1y) / (1 + abs(_v2y)));
+			float gx = _v1x * expf(-abs(_v2x) / (1 + abs(_v2x)));
+			float gy = _v1y * expf(-abs(_v2y) / (1 + abs(_v2y)));
 
-			Gx.at<float>(y,x) = (float) gx;
-			Gy.at<float>(y,x) = (float) gy;
+			Gx.at<float>(y,x) += (float) gx;
+			Gy.at<float>(y,x) += (float) gy;
 		}
 	}
 }
@@ -237,7 +237,8 @@ void Gradient::poissonSolver(){
 	waitKey(0);
 }
 
-void Gradient::poissonSolverGS(){
+void Gradient::poissonSolverGS(int error){
+
 	// Gauss-Seidel method
 	generateDivG();
 
@@ -322,8 +323,8 @@ void Gradient::poissonSolverGS(){
 		U = U1.clone();
 		U1 = Mat::zeros(U.size(), CV_32F);
 
-		//cout << "Error: " << err << endl;
-	}while (err > powf(10, -2));
+		cout << "Error: " << err << endl;
+	}while (err > powf(10, error));
 	cout << "Error: " << err << endl;
 
 	namedWindow("U", WINDOW_KEEPRATIO);

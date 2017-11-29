@@ -6,6 +6,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <core.hpp>
 #include <imgproc.hpp>
 #include <highgui.hpp>
@@ -33,6 +34,12 @@ vector<string> listFile(const char* dirPath);
 bool has_suffix(const string& s, const string& suffix);
 
 int main(int argc, char** argv) {
+
+	long int error = 0;
+	if(argc > 1)
+		error = strtol(argv[1], 0, 0);
+
+
 	vector<string> list = listFile(".");
 	vector<Mat> stackColor;
 	vector<Mat> stack;
@@ -57,14 +64,16 @@ int main(int argc, char** argv) {
 
 	G2.update();
 
-	G2.poissonSolverGS();
+	G2.poissonSolverGS(error);
 
 	G2.addColor(stackColor);
 
 	normalize(G2.divG, G2.divG,0, 255, NORM_MINMAX);
 	normalize(G2.U, G2.U,0, 255, NORM_MINMAX);
+	normalize(G2.result, G2.result,0, 255, NORM_MINMAX);
 	imwrite("divG.jpg",G2.divG);
 	imwrite("U.jpg",G2.U);
+	imwrite("result.jpg", G2.result);
 
 
 	//1029060109476

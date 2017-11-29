@@ -32,18 +32,18 @@ private:
 	Mat Vy1;
 	int l,N;
 	Mat Avg;
-	Mat result;
 	void updateAvg();
 	void updateGradient();
 	void generateDivG();
 public:
 	Mat divG;
 	Mat U;
+	Mat result;
 	Gradient(ImageTensor G);
 	virtual ~Gradient();
 	void update();
 	void poissonSolver();
-	void poissonSolverGS();
+	void poissonSolverGS(int error);
 	void addColor(vector<Mat> stack);
 };
 
